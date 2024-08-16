@@ -43,6 +43,15 @@ Development libraries are usually suffixed with `-devel` or `-dev` in most distr
 You also need to install `mesa-libgbm-devel` on some distros like RPM based ones where its not
 bundled with the mesa package.
 
+### Getting deps, the easy way
+With yay just do 
+
+```
+yay -S hyprlock-git
+```
+
+and when it'll ask you if you want to remove build dependencies, press n
+
 ### Building
 
 Building:
@@ -55,3 +64,11 @@ Installation:
 ```sh
 sudo cmake --install build
 ```
+OR:
+
+```
+chmod +x build_and_install.sh
+./build_and_install.sh
+```
+
+it will also automatically copy over the needed pam.d entry for fingerprint and password auth work at the same time
