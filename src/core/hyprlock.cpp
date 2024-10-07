@@ -728,6 +728,8 @@ static void handleKeyboardModifiers(void* data, wl_keyboard* wl_keyboard, uint s
     }
 
     xkb_state_update_mask(g_pHyprlock->m_pXKBState, mods_depressed, mods_latched, mods_locked, 0, 0, group);
+    g_pHyprlock->m_bCapsLock = xkb_state_mod_name_is_active(g_pHyprlock->m_pXKBState, XKB_MOD_NAME_CAPS, XKB_STATE_MODS_LOCKED);
+    g_pHyprlock->m_bNumLock  = xkb_state_mod_name_is_active(g_pHyprlock->m_pXKBState, XKB_MOD_NAME_NUM, XKB_STATE_MODS_LOCKED);
 }
 
 static void handleRepeatInfo(void* data, struct wl_keyboard* wl_keyboard, int32_t rate, int32_t delay) {
@@ -1136,7 +1138,7 @@ zwlr_screencopy_manager_v1* CHyprlock::getScreencopy() {
 }
 
 void CHyprlock::attemptRestoreOnDeath() {
-    if (m_bTerminate)
+    if (m_bTerminate || m_sCurrentDesktop != "Hyprland")
         return;
 
     const auto XDG_RUNTIME_DIR = getenv("XDG_RUNTIME_DIR");
@@ -1174,6 +1176,13 @@ void CHyprlock::attemptRestoreOnDeath() {
     ofs << timeNowMs;
     ofs.close();
 
+    if (m_bLocked && m_sLockState.lock) {
+        ext_session_lock_v1_destroy(m_sLockState.lock);
+
+        // Destroy sessionLockSurfaces
+        m_vOutputs.clear();
+    }
+
     spawnSync("hyprctl keyword misc:allow_session_lock_restore true");
-    spawnAsync("sleep 2 && hyprlock --immediate --immediate-render & disown");
+    spawnSync("hyprctl dispatch exec \"hyprlock --immediate --immediate-render\"");
 }
